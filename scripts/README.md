@@ -41,7 +41,7 @@ open one notebook per session. rerun earlier cells after reopening to restore va
 
 ## gpu and cpu
 
-tasks use the nvidia gpu when a small calculation passes before launch, with cpu fallback otherwise. `BOOK_GPU=0` forces cpu; `BOOK_GPU=1` requires gpu. errors during the actual task do not rerun it automatically.
+tasks check gpu memory access before launch, with cpu fallback if unavailable. `BOOK_GPU=0` forces cpu; `BOOK_GPU=1` requires gpu. errors during the actual task do not rerun it automatically.
 
 the gpu has 4 gb memory. use small batches and models. numpy and scikit learn usually run on cpu. tensorflow and jax use gpu for supported operations. pytorch needs model and data on the same device:
 

@@ -28,6 +28,7 @@ def launch(path):
                                       "/opt/book-tools/editor/bootstrap.lua", str(path)])
     nvim.eval("1")
     nvim.command("doautocmd User VeryLazy")
+    assert "Mason package path not found" not in nvim.command_output("messages")
     return nvim, time.monotonic() - started
 
 
@@ -62,13 +63,15 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
         cells.insert(1, f"import torch\nx = torch.tensor(3., requires_grad=True, device='{device}')\n"
                      "(x*x).backward()\nassert x.grad.item() == 6")
     nbformat.write(nbformat.v4.new_notebook(cells=[nbformat.v4.new_code_cell(c) for c in cells]), notebook)
+    molten_state = root / "molten.json"
     nvim, first_start = launch(notebook)
     try:
         sys.path.insert(0, os.environ["XDG_DATA_HOME"] + "/nvim/lazy/molten-nvim/rplugin/python3")
         from molten.outputbuffer import OutputBuffer, _book_render_control_chars
-        from molten.outputchunks import Output, OutputStatus, TextOutputChunk
+        from molten.outputchunks import Output, OutputStatus, TextLnOutputChunk, TextOutputChunk
 
         assert _book_render_control_chars("abc\bX") == "abX"
+        assert _book_render_control_chars("first\n\rsecond") == "first\nsecond"
         output = Output(None)
         output.status = OutputStatus.DONE
         output.chunks = [TextOutputChunk("download\n0/2"),
@@ -85,6 +88,17 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
             text = "\n".join(rendered)
             assert "download" in text and "2/2" in text and "0/2" not in text
             assert "\b" not in text and "\r" not in text
+
+        saved = Output(None)
+        saved.status = OutputStatus.DONE
+        saved.chunks = [TextLnOutputChunk("download\n\n0/2"),
+                        TextLnOutputChunk("\b" * 3 + "\r1/2"),
+                        TextLnOutputChunk("\b" * 3 + "\r2/2")]
+        renderer.output = saved
+        rendered, _ = renderer.build_output_text((0, 0, 80, 24), 1, False)
+        text = "\n".join(rendered)
+        assert "download" in text and "2/2" in text and "0/2" not in text
+        assert text.count("/2") == 1 and "\b" not in text and "\r" not in text
         wait(nvim, lambda: nvim.eval("exists(':MoltenInit')") == 2, "Molten commands")
         wait(nvim, lambda: nvim.exec_lua("return vim.b.notebook_kernel_initialized == true"), "notebook initialization")
         assert nvim.eval("g:mapleader") == " "
@@ -104,8 +118,6 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
         assert notebook.read_bytes() == before
         assert nvim.eval("g:molten_virt_text_max_lines") == 8
         assert nvim.eval("g:molten_output_win_max_height") == 12
-
-        molten_state = root / "molten.json"
 
         def executions_done(after=0):
             nvim.eval("MoltenTick()")
@@ -149,6 +161,7 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
             if "BOOK_KERNEL_OK" in line:
                 nvim.current.buffer[i] = line.replace("BOOK_KERNEL_OK", "BOOK_EDITED_OK")
         nvim.command("doautocmd TextChanged")
+        nvim.exec_lua("vim.treesitter.get_parser(0):parse()")
         nvim.exec_lua("vim.fn.maparg(vim.g.maplocalleader .. 'R', 'n', false, true).callback()")
         wait(nvim, lambda: kernel_finished(2), "edited kernel cell execution")
         wait(nvim, lambda: executions_done(len(cells)), "edited cell output collection")

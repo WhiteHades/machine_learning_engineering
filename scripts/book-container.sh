@@ -86,7 +86,22 @@ case "$action" in
         fi
       done
       if "${docker_cmd[@]}" "${args[@]}" "${gpu_args[@]}" "$image" python -c \
-          'import signal; signal.alarm(30); import torch; x = torch.ones((2, 2), device="cuda"); assert (x @ x).sum().item() == 8' \
+          'import signal; signal.alarm(30)
+import ctypes as c
+cuda = c.CDLL("libcuda.so.1")
+context, memory = c.c_void_p(), c.c_uint64()
+def check(result):
+    assert result == 0, f"CUDA error {result}"
+check(cuda.cuInit(0))
+check(cuda.cuDevicePrimaryCtxRetain(c.byref(context), 0))
+check(cuda.cuCtxSetCurrent(context))
+check(cuda.cuMemAlloc_v2(c.byref(memory), c.c_size_t(16)))
+check(cuda.cuMemsetD32_v2(memory, c.c_uint(7), c.c_size_t(4)))
+result = (c.c_uint * 4)()
+check(cuda.cuMemcpyDtoH_v2(result, memory, c.c_size_t(16)))
+assert list(result) == [7] * 4
+check(cuda.cuMemFree_v2(memory))
+check(cuda.cuDevicePrimaryCtxRelease(0))' \
           >.state/gpu.log 2>&1; then
         args+=("${gpu_args[@]}")
         gpu=1
