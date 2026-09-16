@@ -1,0 +1,7 @@
+# Optional author-built extensions for Appendix E, Python 3.12 on Linux x86_64.
+FROM local/ml-foundation:2026-09
+RUN python -m pip install --no-cache-dir ninja==1.13.0 \
+    && python -m pip install --no-cache-dir --no-deps \
+      'https://homl.info/causal_conv1d-1.5.3.post1-cp312-cp312-linux_x86_64.whl#sha256=2d1526fea6a4646b3b041862008ad6896932856b824705eb2eff0e3a33a96b74' \
+      'https://homl.info/mamba_ssm-2.2.6.post3-cp312-cp312-linux_x86_64.whl#sha256=94fa1969000026b43c67493f5aaa06728cc22378bb644b644a66e504b808cac1' \
+    && python -m pip check

@@ -1,0 +1,57 @@
+[tasks."setup"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh setup "$@"'
+
+[tasks."fetch"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh fetch "$@"'
+
+[tasks."doctor"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh doctor "$@"'
+
+[tasks."run"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh run "$@"'
+
+[tasks."lab"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh lab "$@"'
+
+[tasks."notebook"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh notebook "$@"'
+
+[tasks."test"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh test "$@"'
+
+[tasks."shell"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh shell "$@"'
+
+[tasks."verify"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh verify "$@"'
+
+[tasks."gpu:verify"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh gpu-verify "$@"'
+
+[tasks."editor:setup"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh editor-setup "$@"'
+
+[tasks."edit"]
+dir = "{{config_root}}"
+raw = true
+run = 'bash ../scripts/python-book.sh edit "$@"'
+
+[tasks."editor:verify"]
+dir = "{{config_root}}"
+run = 'bash ../scripts/python-book.sh editor-verify "$@"'

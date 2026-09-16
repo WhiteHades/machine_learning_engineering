@@ -1,0 +1,19 @@
+# Generated Python files and private downloads.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+.state/
+*.epub
+*.pdf
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.hdf5
+*.keras
+*.onnx
+.env
+.env.*
