@@ -19,3 +19,36 @@ RUN python -m pip freeze > /tmp/book-constraints.txt \
     && python -m pip install --no-cache-dir -c /tmp/book-constraints.txt \
        pynvim==0.6.0 jupytext==1.19.5 pyright==1.1.414 ruff==0.16.7 \
     && python -m pip check && rm /tmp/book-constraints.txt
+
+# Keep all URI validators, but build each parser only when it is first used.
+# This dependency otherwise builds dozens of unused parsers on every import.
+RUN python - <<'PY'
+import importlib.util
+from pathlib import Path
+
+spec = importlib.util.find_spec("rfc3987_syntax")
+if spec is not None:
+    import rfc3987_syntax.syntax_helpers as original
+    path = Path(original.__file__)
+    source = path.read_text()
+    old = '''    parser = Lark(grammar, start=rule_name, parser=RFC3987_SYNTAX_PARSER_TYPE)
+
+    def syntax_validator(text):
+'''
+    new = '''    parser = None
+
+    def syntax_validator(text):
+        nonlocal parser
+        if parser is None:
+            parser = Lark(grammar, start=rule_name, parser=RFC3987_SYNTAX_PARSER_TYPE)
+'''
+    assert source.count(old) == 1, "review rfc3987_syntax before updating this patch"
+    source = source.replace(old, new)
+    patched = dict(original.__dict__)
+    exec(compile(source, str(path), "exec"), patched)
+    for name in vars(original):
+        if name.startswith("is_valid_syntax_"):
+            for value in ("", "a", "123", "::1", "https://example.org/a?q=1#x", "https://例え.jp/", "bad space", "\n", "%20", "%zz"):
+                assert patched[name](value) == getattr(original, name)(value), (name, value)
+    path.write_text(source)
+PY
