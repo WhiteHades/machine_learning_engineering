@@ -41,6 +41,20 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     vim.bo[ev.buf].buftype = "acwrite"
   end,
 })
+-- Apply after LazyVim enables spellcheck for Markdown during VeryLazy.
+vim.api.nvim_create_autocmd("User", {
+  pattern = "VeryLazy",
+  once = true,
+  callback = function()
+    local function notebook_spelling()
+      if vim.api.nvim_buf_get_name(0):match("%.ipynb$") then
+        vim.wo.spell = false
+      end
+    end
+    vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, { callback = notebook_spelling })
+    notebook_spelling()
+  end,
+})
 -- Molten saves outputs after Jupytext writes the source. Acknowledge that write
 -- so the next save does not mistake our own output export for an external edit.
 vim.api.nvim_create_autocmd("BufWritePost", {

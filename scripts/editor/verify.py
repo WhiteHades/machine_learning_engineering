@@ -108,6 +108,10 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
         for kind in ("config", "data", "state", "cache"):
             assert nvim.eval(f"stdpath('{kind}')").startswith("/workspace/.state/editor/")
         assert nvim.current.buffer.options["buftype"] == "acwrite"
+        assert not nvim.current.window.options["spell"]
+        nvim.command("split")
+        assert not nvim.current.window.options["spell"]
+        nvim.command("close")
         before = notebook.read_bytes()
         try:
             nvim.command("noautocmd write")
