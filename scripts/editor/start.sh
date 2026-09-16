@@ -12,12 +12,6 @@ mkdir -p "$HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME/nvim" "$XDG_CACHE_HOME" "$XDG
 mkdir -p "$JUPYTER_DATA_DIR/runtime"
 chmod 700 "$XDG_RUNTIME_DIR"
 [[ -f "$XDG_CONFIG_HOME/nvim/init.lua" ]] || { echo 'Run mise run editor:setup first.' >&2; exit 1; }
-# Existing notebook configuration expects its tools below config/.venv.
-runtime="$XDG_CONFIG_HOME/nvim/.venv"
-mkdir -p "$runtime/bin" "$runtime/lib"
-for tool in python python3 jupytext; do ln -sfn "/usr/local/bin/$tool" "$runtime/bin/$tool"; done
-version="$(python -c 'import sys; print(f"python{sys.version_info.major}.{sys.version_info.minor}")')"
-ln -sfn "/usr/local/lib/$version" "$runtime/lib/$version"
 editor=(nvim -u /opt/book-tools/editor/bootstrap.lua)
 if [[ "${1:-}" != --setup && ! -f "$XDG_DATA_HOME/nvim/rplugin.vim" ]]; then
     echo 'editor setup is incomplete. run: mise run editor:setup' >&2
