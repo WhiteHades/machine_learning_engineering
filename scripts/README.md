@@ -35,7 +35,7 @@ print(2 + 3)
 ```
 ````
 
-in normal mode, `\r` runs the current cell, `\R` runs all cells, `\a` runs the current and earlier cells, and `\o` shows output. `\i` initializes or reinitializes the kernel. type `:w` then press `Enter` to save. for a python script, save and use `:!python %:S`.
+in normal mode, `\r` runs the current cell, `\R` runs all cells, `\a` runs the current and earlier cells, `\o` shows output, and `\O` hides it. output previews stay short and progress updates redraw in place. `\i` initializes or reinitializes the kernel. type `:w` then press `Enter` to save. for a python script, save and use `:!python %:S`.
 
 open one notebook per session. rerun earlier cells after reopening to restore variables. plots need a terminal with kitty graphics support. editor setup copies the current config and keys into `.state/editor/`; later system changes are not copied automatically.
 

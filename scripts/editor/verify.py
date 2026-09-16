@@ -3,8 +3,10 @@ import json
 import os
 from pathlib import Path
 import statistics
+import sys
 import tempfile
 import time
+from types import SimpleNamespace
 
 import nbformat
 import pynvim
@@ -62,6 +64,27 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
     nbformat.write(nbformat.v4.new_notebook(cells=[nbformat.v4.new_code_cell(c) for c in cells]), notebook)
     nvim, first_start = launch(notebook)
     try:
+        sys.path.insert(0, os.environ["XDG_DATA_HOME"] + "/nvim/lazy/molten-nvim/rplugin/python3")
+        from molten.outputbuffer import OutputBuffer, _book_render_control_chars
+        from molten.outputchunks import Output, OutputStatus, TextOutputChunk
+
+        assert _book_render_control_chars("abc\bX") == "abX"
+        output = Output(None)
+        output.status = OutputStatus.DONE
+        output.chunks = [TextOutputChunk("download\n0/2"),
+                         TextOutputChunk("\b" * 3 + "\r1/2"),
+                         TextOutputChunk("\b" * 3 + "\r2/2\n")]
+        renderer = object.__new__(OutputBuffer)
+        renderer.output = output
+        renderer.options = SimpleNamespace(wrap_output=True, limit_output_chars=1000,
+                                           output_show_exec_time=False, image_provider="none")
+        renderer.canvas = None
+        renderer.nvim = SimpleNamespace(current=SimpleNamespace(window=SimpleNamespace(handle=1)))
+        for virtual in (False, True):
+            rendered, _ = renderer.build_output_text((0, 0, 80, 24), 1, virtual)
+            text = "\n".join(rendered)
+            assert "download" in text and "2/2" in text and "0/2" not in text
+            assert "\b" not in text and "\r" not in text
         wait(nvim, lambda: nvim.eval("exists(':MoltenInit')") == 2, "Molten commands")
         wait(nvim, lambda: nvim.exec_lua("return vim.b.notebook_kernel_initialized == true"), "notebook initialization")
         assert nvim.eval("g:mapleader") == " "
@@ -70,6 +93,17 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
         assert nvim.eval("maparg('jj', 'i')") == "<Esc>", nvim.eval("maparg('jj', 'i')")
         for kind in ("config", "data", "state", "cache"):
             assert nvim.eval(f"stdpath('{kind}')").startswith("/workspace/.state/editor/")
+        assert nvim.current.buffer.options["buftype"] == "acwrite"
+        before = notebook.read_bytes()
+        try:
+            nvim.command("noautocmd write")
+        except pynvim.api.common.NvimError as error:
+            assert "E676" in str(error), error
+        else:
+            raise AssertionError("a notebook save bypassed the converter")
+        assert notebook.read_bytes() == before
+        assert nvim.eval("g:molten_virt_text_max_lines") == 8
+        assert nvim.eval("g:molten_output_win_max_height") == 12
 
         molten_state = root / "molten.json"
 
@@ -126,7 +160,9 @@ with tempfile.TemporaryDirectory(prefix="verify-", dir="/workspace/.state/editor
         print(nvim.command_output("messages"))
         print(nvim.eval("MoltenRunningKernels()"))
         print("kernel completion:", marker.read_text() if marker.exists() else "missing")
-        print("Molten state:", molten_state.read_text() if molten_state.exists() else "missing")
+        state = json.loads(molten_state.read_text()) if molten_state.exists() else {"cells": []}
+        print("Molten state:", [(cell["execution_count"], cell["status"], cell["success"])
+                                for cell in state["cells"]])
         print([(c.execution_count, c.source[:100]) for c in nbformat.read(notebook, as_version=4).cells])
         raise
     finally:

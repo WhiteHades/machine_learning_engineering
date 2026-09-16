@@ -13,6 +13,17 @@ end
 -- Kitty graphics must transmit bytes: the terminal cannot open container /tmp.
 vim.env.SSH_TTY = "/dev/tty"
 dofile(vim.fn.stdpath("config") .. "/init.lua")
+-- Keep output readable without covering the notebook with long logs.
+vim.g.molten_virt_text_max_lines = 8
+vim.g.molten_output_win_max_height = 12
+vim.g.molten_output_win_max_width = 100
+-- Notebook buffers contain Markdown, so every save must use the converter.
+vim.api.nvim_create_autocmd("BufReadPost", {
+  pattern = "*.ipynb",
+  callback = function(ev)
+    vim.bo[ev.buf].buftype = "acwrite"
+  end,
+})
 -- Molten saves outputs after Jupytext writes the source. Acknowledge that write
 -- so the next save does not mistake our own output export for an external edit.
 vim.api.nvim_create_autocmd("BufWritePost", {
