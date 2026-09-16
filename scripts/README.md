@@ -25,7 +25,9 @@ mise run test -- exercises
 
 `edit` opens the existing lazyvim setup inside the book environment. `lab` opens jupyter through the printed url. `notebook` runs an existing notebook and saves a copy in `.state/notebooks/`. scripts run from their own folder; keep needed data and helpers beside them.
 
-## notebook keys
+## notebook
+
+the editor uses the unified `WhiteHades/ipynb.nvim` plugin for jupytext, molten, quarto, otter, tree-sitter, and optional image output. run `mise run editor:setup` after changing the editor setup; use `:checkhealth ipynb` when the runtime needs checking.
 
 press `Esc` for normal mode. `i` enters insert mode for typing. in normal mode, `o` starts a new line below the cursor. each fenced `python` block is a separate cell:
 
@@ -35,9 +37,9 @@ print(2 + 3)
 ```
 ````
 
-in normal mode, `\r` runs the current cell, `\R` runs all cells, `\a` runs the current and earlier cells, `\o` shows output, and `\O` hides it. output previews stay short and progress updates redraw in place. `\i` initializes or reinitializes the kernel. type `:w` then press `Enter` to save. for a python script, save and use `:!python %:S`.
+`:Ipynb` opens the action menu. in normal mode, `\r` runs the current cell, `\R` runs all cells, `\a` runs the current and earlier cells, `\o` opens and focuses output, and `\O` hides it. output previews stay short and progress updates redraw in place. `\i` initializes or reinitializes the kernel. type `:w` then press `Enter` to save cells and outputs. reopening restores saved outputs but not the python kernel, variables, or model; rerun cells or load an explicitly saved model. for a python script, save and use `:!python %:S`.
 
-open one notebook per session. rerun earlier cells after reopening to restore variables. plots need a terminal with kitty graphics support. editor setup copies the current config and keys into `.state/editor/`; later system changes are not copied automatically.
+open one notebook per session. plots need a terminal with kitty graphics support. editor setup copies the current config and keys into `.state/editor/`; later system changes are not copied automatically.
 
 ## gpu and cpu
 
