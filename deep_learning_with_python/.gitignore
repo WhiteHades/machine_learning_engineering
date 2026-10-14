@@ -2,7 +2,6 @@
 /.state/
 /data/
 /models/
-/.book/
 /*.epub
 /*.pdf
 /*.txt

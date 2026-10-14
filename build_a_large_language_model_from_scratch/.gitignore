@@ -2,7 +2,6 @@
 /.state/
 /data/
 /models/
-/.book/
 /.venv/
 __pycache__/
 *.py[cod]
