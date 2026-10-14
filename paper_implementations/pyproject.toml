@@ -1,0 +1,9 @@
+[project]
+name = "paper-implementations"
+version = "0.1.0"
+description = "Hand-written paper implementations - practice env"
+requires-python = ">=3.12"
+dependencies = [
+  "jupyterlab",
+  "ipykernel",
+]

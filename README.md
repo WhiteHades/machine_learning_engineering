@@ -2,6 +2,12 @@
 
 book examples, exercises, and small experiments while learning machine learning and deep learning.
 
+each practice folder has its own `pyproject.toml`, `uv.lock`, and `.venv`.
+run `uv sync` inside the folder you want to use, then open a blank notebook
+with `nvim exercises/new_blank.ipynb`. write all exercise code by hand and
+keep the official source in `code/` unchanged. each folder's README has the
+setup details and the optional browser workflow.
+
 ## books in use
 
 1. [deep learning with python, third edition](https://www.manning.com/books/deep-learning-with-python-third-edition) by françois chollet and matthew watson. [practice folder](deep_learning_with_python/).
